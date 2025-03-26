@@ -1,0 +1,4 @@
+# Enables the nightly rust compiler for optimized builds.
+# See: https://bevyengine.org/learn/quick-start/getting-started/setup/#dynamic-linking.
+[toolchain]
+channel = "nightly"
