@@ -1,5 +1,5 @@
+mod draw_grid_map;
 mod setup_camera;
-mod setup_grid_points;
 
+pub use draw_grid_map::*;
 pub use setup_camera::*;
-pub use setup_grid_points::*;

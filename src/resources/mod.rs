@@ -1,3 +1,3 @@
-mod maze_map;
+mod grid_map;
 
-pub use maze_map::*;
+pub use grid_map::*;
