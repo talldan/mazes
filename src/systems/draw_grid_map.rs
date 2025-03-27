@@ -1,4 +1,5 @@
-use crate::{resources::GridMap, WallOrientation};
+use crate::maze_builders::*;
+use crate::resources::*;
 use bevy::prelude::*;
 
 const POINT_SIZE: f32 = 4.0;
@@ -40,9 +41,11 @@ pub fn draw_grid_map(
         .collect();
 
     let wall_shape = meshes.add(Rectangle::new(1.0, 1.0));
+    let removed_walls = carve_binary_tree_into_grid_map(&grid_map);
 
     let horizontal_wall_batch: Vec<(Mesh2d, MeshMaterial2d<ColorMaterial>, Transform)> = grid_map
         .iter_walls(WallOrientation::Horizontal)
+        .filter(|wall| !removed_walls.contains(wall))
         .map(|wall| {
             let from = start_pos + (wall.from.as_vec2() * scale);
 
@@ -67,6 +70,7 @@ pub fn draw_grid_map(
 
     let vertical_wall_batch: Vec<(Mesh2d, MeshMaterial2d<ColorMaterial>, Transform)> = grid_map
         .iter_walls(WallOrientation::Vertical)
+        .filter(|wall| !removed_walls.contains(wall))
         .map(|wall| {
             let from = start_pos + (wall.from.as_vec2() * scale);
 

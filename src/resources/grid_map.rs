@@ -30,40 +30,57 @@ impl GridMap {
         GridMap { columns, rows }
     }
 
-    pub fn wall_from_cell_pos(&self, cell_pos: IVec2, direction: Direction) -> Option<Wall> {
+    pub fn wall_from_cell_pos(&self, cell_pos: IVec2, direction: Dir2) -> Option<Wall> {
         if !self.is_cell_pos_in_bounds(cell_pos) {
             return None;
         }
 
         match direction {
-            Direction::Up => Some(Wall {
-                from: cell_pos,
-                to: IVec2 {
-                    x: cell_pos.x + 1,
-                    y: cell_pos.y,
-                },
-            }),
-            Direction::Right => Some(Wall {
-                from: IVec2 {
-                    x: cell_pos.x + 1,
-                    y: cell_pos.y,
-                },
-                to: cell_pos + 1,
-            }),
-            Direction::Down => Some(Wall {
+            Dir2::NORTH => Some(Wall {
                 from: IVec2 {
                     x: cell_pos.x,
                     y: cell_pos.y + 1,
                 },
                 to: cell_pos + 1,
             }),
-            Direction::Left => Some(Wall {
+            Dir2::SOUTH => Some(Wall {
+                from: cell_pos,
+                to: IVec2 {
+                    x: cell_pos.x + 1,
+                    y: cell_pos.y,
+                },
+            }),
+            Dir2::EAST => Some(Wall {
+                from: IVec2 {
+                    x: cell_pos.x + 1,
+                    y: cell_pos.y,
+                },
+                to: cell_pos + 1,
+            }),
+            Dir2::WEST => Some(Wall {
                 from: cell_pos,
                 to: IVec2 {
                     x: cell_pos.x,
                     y: cell_pos.y + 1,
                 },
             }),
+            _ => None,
+        }
+    }
+
+    pub fn wall_from_cell_index(&self, index: i32, direction: Dir2) -> Option<Wall> {
+        let cell_pos = self.index_to_cell_pos(index);
+        match cell_pos {
+            Some(cell_pos) => self.wall_from_cell_pos(cell_pos, direction),
+            None => None,
+        }
+    }
+
+    pub fn neighbour_from_cell_index(&self, index: i32, direction: Dir2) -> Option<i32> {
+        let cell_pos = self.index_to_cell_pos(index);
+        match cell_pos {
+            Some(cell_pos) => self.cell_pos_to_index(cell_pos + direction.as_ivec2()),
+            None => None,
         }
     }
 

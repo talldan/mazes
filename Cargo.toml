@@ -15,3 +15,4 @@ opt-level = 3
 # TODO - Remove dynamic_linking before release.
 # https://bevyengine.org/learn/quick-start/getting-started/setup/#dynamic-linking
 bevy = { version = "0.15", features = ["dynamic_linking"] }
+fastrand = "2.3"
