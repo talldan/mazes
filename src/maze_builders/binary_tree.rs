@@ -1,13 +1,7 @@
+use super::get_direction_from_coinflip;
 use crate::resources::{GridMap, Wall};
 use bevy::{prelude::*, utils::HashSet};
 use fastrand;
-
-fn get_direction_from_coinflip(coinflip: bool) -> Dir2 {
-    match coinflip {
-        true => Dir2::NORTH,
-        false => Dir2::EAST,
-    }
-}
 
 pub fn carve_binary_tree_into_grid_map(grid_map: &GridMap) -> HashSet<Wall> {
     let mut removed_walls = HashSet::new();
