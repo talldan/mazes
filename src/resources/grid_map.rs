@@ -1,9 +1,15 @@
-use bevy::{prelude::*, utils::HashSet};
+use bevy::prelude::*;
 
-#[derive(Hash, Eq, PartialEq, Debug)]
+#[derive(Eq, PartialEq, Copy, Clone)]
+pub enum WallOrientation {
+    Horizontal,
+    Vertical,
+}
+
+#[derive(Hash, Eq, PartialEq)]
 pub struct Wall {
-    from: IVec2,
-    to: IVec2,
+    pub from: IVec2,
+    pub to: IVec2,
 }
 
 pub enum Direction {
@@ -17,24 +23,11 @@ pub enum Direction {
 pub struct GridMap {
     columns: i32,
     rows: i32,
-    removed_walls: HashSet<Wall>,
 }
 
 impl GridMap {
     pub fn new(columns: i32, rows: i32) -> Self {
-        GridMap {
-            columns,
-            rows,
-            removed_walls: HashSet::new(),
-        }
-    }
-
-    pub fn remove_wall(&mut self, from: IVec2, to: IVec2) {
-        self.removed_walls.insert(Wall { from, to });
-    }
-
-    pub fn is_wall_removed(&self, wall: &Wall) {
-        self.removed_walls.contains(wall);
+        GridMap { columns, rows }
     }
 
     pub fn wall_from_cell_pos(&self, cell_pos: IVec2, direction: Direction) -> Option<Wall> {
@@ -106,6 +99,59 @@ impl GridMap {
         index_to_pos(index, self.columns + 1, self.rows + 1)
     }
 
+    pub fn is_wall_pos_in_bounds(&self, wall: Wall) -> bool {
+        let cols = self.columns + 1;
+        let rows = self.rows + 1;
+        is_pos_in_bounds(wall.from, cols, rows) && is_pos_in_bounds(wall.to, cols, rows)
+    }
+
+    pub fn is_wall_index_in_bounds(&self, index: i32, orientation: WallOrientation) -> bool {
+        if orientation == WallOrientation::Horizontal {
+            is_index_in_bounds(index, self.columns, self.rows + 1)
+        } else {
+            is_index_in_bounds(index, self.columns + 1, self.rows)
+        }
+    }
+
+    pub fn wall_pos_to_index(&self, wall: Wall) -> Option<i32> {
+        if wall.from.x == wall.to.x {
+            // Horizontal.
+            pos_to_index(wall.from, self.columns, self.rows + 1)
+        } else {
+            // Vertical.
+            pos_to_index(wall.from, self.columns + 1, self.rows)
+        }
+    }
+
+    pub fn index_to_wall_pos(&self, index: i32, orientation: WallOrientation) -> Option<Wall> {
+        let from = if orientation == WallOrientation::Horizontal {
+            index_to_pos(index, self.columns, self.rows + 1)
+        } else {
+            index_to_pos(index, self.columns + 1, self.rows)
+        };
+
+        // We know that if `from` is valid, then we can also calculate a valid `to` pos
+        // due to the way `index_to_pos` works, so defer calculating `to` until we've
+        // checked there is `Some` `from` value.
+        if let Some(from) = from {
+            let to = if orientation == WallOrientation::Horizontal {
+                IVec2 {
+                    x: from.x + 1,
+                    y: from.y,
+                }
+            } else {
+                IVec2 {
+                    x: from.x,
+                    y: from.y + 1,
+                }
+            };
+
+            return Some(Wall { from, to });
+        } else {
+            return None;
+        }
+    }
+
     pub fn get_scale_from_available_space(&self, available_space: Vec2) -> f32 {
         let width_scale = available_space.x / (self.columns as f32);
         let height_scale = available_space.y / (self.rows as f32);
@@ -126,6 +172,18 @@ impl GridMap {
         -(base_vec * scale) / 2.0
     }
 
+    pub fn get_cell_count(&self) -> i32 {
+        self.columns * self.rows
+    }
+
+    pub fn get_point_count(&self) -> i32 {
+        (self.columns + 1) * (self.rows + 1)
+    }
+
+    pub fn get_wall_count(&self) -> i32 {
+        (self.columns * (self.rows + 1)) + (self.rows * (self.columns + 1))
+    }
+
     pub fn iter_cells(&self) -> GridMapCellIterator {
         GridMapCellIterator {
             grid_map: self,
@@ -137,6 +195,14 @@ impl GridMap {
         GridMapPointIterator {
             grid_map: self,
             index: 0,
+        }
+    }
+
+    pub fn iter_walls(&self, orientation: WallOrientation) -> GridMapWallIterator {
+        GridMapWallIterator {
+            grid_map: self,
+            index: 0,
+            orientation,
         }
     }
 }
@@ -166,6 +232,24 @@ impl<'a> Iterator for GridMapPointIterator<'a> {
 
     fn next(&mut self) -> Option<Self::Item> {
         let result = self.grid_map.index_to_point_pos(self.index as i32);
+        self.index += 1;
+        result
+    }
+}
+
+pub struct GridMapWallIterator<'a> {
+    grid_map: &'a GridMap,
+    orientation: WallOrientation,
+    index: usize,
+}
+
+impl<'a> Iterator for GridMapWallIterator<'a> {
+    type Item = Wall;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let result = self
+            .grid_map
+            .index_to_wall_pos(self.index as i32, self.orientation);
         self.index += 1;
         result
     }
