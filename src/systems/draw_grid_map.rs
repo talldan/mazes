@@ -41,7 +41,7 @@ pub fn draw_grid_map(
         .collect();
 
     let wall_shape = meshes.add(Rectangle::new(1.0, 1.0));
-    let removed_walls = carve_sidewinder_into_grid_map(&grid_map);
+    let removed_walls = carve_binary_tree_into_grid_map(&grid_map);
 
     let horizontal_wall_batch: Vec<(Mesh2d, MeshMaterial2d<ColorMaterial>, Transform)> = grid_map
         .iter_walls(WallOrientation::Horizontal)

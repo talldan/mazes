@@ -68,6 +68,34 @@ impl GridMap {
         }
     }
 
+    pub fn inner_wall_from_cell_pos(&self, cell_pos: IVec2, direction: Dir2) -> Option<Wall> {
+        match direction {
+            Dir2::NORTH => {
+                if cell_pos.y == self.rows - 1 {
+                    return None;
+                }
+            }
+            Dir2::SOUTH => {
+                if cell_pos.y == 0 {
+                    return None;
+                }
+            }
+            Dir2::EAST => {
+                if cell_pos.x == self.columns - 1 {
+                    return None;
+                }
+            }
+            Dir2::WEST => {
+                if cell_pos.x == 0 {
+                    return None;
+                }
+            }
+            _ => return None,
+        }
+
+        return self.wall_from_cell_pos(cell_pos, direction);
+    }
+
     pub fn wall_from_cell_index(&self, index: i32, direction: Dir2) -> Option<Wall> {
         let cell_pos = self.index_to_cell_pos(index);
         match cell_pos {
