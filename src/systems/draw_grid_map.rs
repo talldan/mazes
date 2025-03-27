@@ -2,7 +2,8 @@ use crate::resources::GridMap;
 use bevy::prelude::*;
 
 const POINT_SIZE: f32 = 4.0;
-const PADDING_PX: f32 = 150.0;
+const PADDING_PX: f32 = 75.0;
+const COLOR: Color = Color::srgb(0.9, 0.9, 0.9);
 
 pub fn draw_grid_map(
     mut commands: Commands,
@@ -15,36 +16,22 @@ pub fn draw_grid_map(
     let window_width = window.resolution.width();
     let window_height = window.resolution.height();
     let available_space = Vec2 {
-        x: window_width - PADDING_PX,
-        y: window_height - PADDING_PX,
+        x: window_width - (PADDING_PX * 2.0),
+        y: window_height - (PADDING_PX * 2.0),
     };
 
-    let grid_size = grid_map.fit_to_available_space(available_space);
+    let scale = grid_map.get_scale_from_available_space(available_space);
+    let start_pos = grid_map.get_centered_grid_pos(scale);
+    let point_shape = meshes.add(Circle::new(POINT_SIZE));
+    let material = materials.add(COLOR);
 
-    println!("grid_size: {}, {}", grid_size.x, grid_size.y);
+    grid_map.iter_points().for_each(|cell_pos| {
+        let cell_coords = start_pos + (cell_pos.as_vec2() * scale);
 
-    let start_pos = -grid_size / 2.0;
-    println!("start_pos: {}, {}", start_pos.x, start_pos.y);
-
-    for y in 0..(grid_map.size.y as i32) {
-        for x in 0..(grid_map.size.x as i32) {
-            let mesh = meshes.add(Circle::new(POINT_SIZE));
-            let color = Color::srgb(1.0, 1.0, 1.0);
-            let material = materials.add(color);
-
-            let grid_index = Vec2 {
-                x: x as f32,
-                y: y as f32,
-            };
-
-            let gap = grid_size / (grid_map.size - 1.0);
-            let pos = start_pos + (grid_index * gap);
-
-            commands.spawn((
-                Mesh2d(mesh),
-                MeshMaterial2d(material),
-                Transform::from_xyz(pos.x, pos.y, 0.0),
-            ));
-        }
-    }
+        commands.spawn((
+            Mesh2d(point_shape.clone()),
+            MeshMaterial2d(material.clone()),
+            Transform::from_xyz(cell_coords.x, cell_coords.y, 0.0),
+        ));
+    });
 }

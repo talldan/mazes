@@ -10,7 +10,7 @@ pub use crate::systems::*;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .insert_resource(GridMap::new(Vec2 { x: 5.0, y: 5.0 }))
+        .insert_resource(GridMap::new(5, 5))
         .add_systems(Startup, (setup_camera, draw_grid_map))
         .run();
 }
