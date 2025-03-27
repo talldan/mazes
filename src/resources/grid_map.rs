@@ -84,6 +84,14 @@ impl GridMap {
         }
     }
 
+    pub fn neighbour_from_cell_pos(&self, cell_pos: IVec2, direction: Dir2) -> Option<IVec2> {
+        let neighbour_pos = cell_pos + direction.as_ivec2();
+        match self.is_cell_pos_in_bounds(neighbour_pos) {
+            true => Some(neighbour_pos),
+            false => None,
+        }
+    }
+
     pub fn is_cell_pos_in_bounds(&self, cell_pos: IVec2) -> bool {
         is_pos_in_bounds(cell_pos, self.columns, self.rows)
     }
