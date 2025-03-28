@@ -237,9 +237,21 @@ impl GridMap {
         (self.columns * (self.rows + 1)) + (self.rows * (self.columns + 1))
     }
 
-    pub fn get_extreme_cell_pos(&self) -> IVec2 {
+    pub fn get_north_east_cell_pos(&self) -> IVec2 {
         IVec2 {
             x: self.columns - 1,
+            y: self.rows - 1,
+        }
+    }
+    pub fn get_north_west_cell_pos(&self) -> IVec2 {
+        IVec2 {
+            x: self.columns - 1,
+            y: 0,
+        }
+    }
+    pub fn get_south_east_cell_pos(&self) -> IVec2 {
+        IVec2 {
+            x: 0,
             y: self.rows - 1,
         }
     }

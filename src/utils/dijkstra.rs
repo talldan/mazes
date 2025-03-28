@@ -110,3 +110,13 @@ pub fn get_path(
 
     return breadcrumbs;
 }
+
+pub fn get_most_distant(distance_map: &HashMap<IVec2, i32>) -> (IVec2, i32) {
+    let mut furthest = (IVec2 { x: 0, y: 0 }, 0);
+    for item in distance_map {
+        if *item.1 > furthest.1 {
+            furthest = (item.0.clone(), item.1.clone());
+        }
+    }
+    furthest
+}

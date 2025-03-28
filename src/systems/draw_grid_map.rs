@@ -1,13 +1,13 @@
 use crate::maze_builders::*;
 use crate::resources::*;
 use crate::utils::*;
-use bevy::color::palettes::css::LIME;
+use bevy::color::palettes::css::*;
 use bevy::prelude::*;
 
 const POINT_SIZE: f32 = 4.0;
 const WALL_SIZE: f32 = 2.0;
 const PADDING_PX: f32 = 75.0;
-const COLOR: Color = Color::srgb(0.9, 0.9, 0.9);
+const COLOR: Color = Color::srgb(0.2, 0.2, 0.2);
 
 pub fn draw_grid_map(
     mut commands: Commands,
@@ -27,7 +27,50 @@ pub fn draw_grid_map(
     let scale = grid_map.get_scale_from_available_space(available_space);
     let start_pos = grid_map.get_centered_grid_pos(scale);
     let point_shape = meshes.add(Circle::new(POINT_SIZE));
+    let rectangle_shape = meshes.add(Rectangle::new(1.0, 1.0));
     let material = materials.add(COLOR);
+    let removed_walls = carve_sidewinder_into_grid_map(&grid_map);
+    let start = grid_map.get_north_east_cell_pos();
+    let distances = dijkstra(start, &grid_map, &removed_walls);
+    let (to, _) = get_most_distant(&distances);
+    let distances = dijkstra(to, &grid_map, &removed_walls);
+    let (from, farthest_distance) = get_most_distant(&distances);
+    let path = get_path(from, to, &grid_map, &removed_walls);
+
+    let cell_batch: Vec<(Mesh2d, MeshMaterial2d<ColorMaterial>, Transform)> = grid_map
+        .iter_cells()
+        .map(|cell| {
+            let cell_coords = start_pos + (cell.as_vec2() * scale);
+            let distance = distances.get(&cell);
+            let color = if let Some(distance) = distance {
+                let max = farthest_distance as f32;
+                let dist = *distance as f32;
+                let intensity = (max - dist) / max;
+                let dark = 1.0 * intensity;
+                let bright = 0.5 + (0.5 * intensity);
+                Color::srgb(dark, bright, dark)
+            } else {
+                Color::srgba(1.0, 1.0, 1.0, 0.0)
+            };
+            let background_material = materials.add(color);
+            (
+                Mesh2d(rectangle_shape.clone()),
+                MeshMaterial2d(background_material),
+                Transform::from_scale(Vec3 {
+                    x: scale,
+                    y: scale,
+                    z: 1.0,
+                })
+                .with_translation(Vec3 {
+                    // The rectangle will be centered over the 'from' position,
+                    // so we need to move it by another half of its length.
+                    x: cell_coords.x + (scale * 0.5),
+                    y: cell_coords.y + (scale * 0.5),
+                    z: -0.1,
+                }),
+            )
+        })
+        .collect();
 
     let point_batch: Vec<(Mesh2d, MeshMaterial2d<ColorMaterial>, Transform)> = grid_map
         .iter_points()
@@ -42,9 +85,6 @@ pub fn draw_grid_map(
         })
         .collect();
 
-    let wall_shape = meshes.add(Rectangle::new(1.0, 1.0));
-    let removed_walls = carve_sidewinder_into_grid_map(&grid_map);
-
     let horizontal_wall_batch: Vec<(Mesh2d, MeshMaterial2d<ColorMaterial>, Transform)> = grid_map
         .iter_walls(WallOrientation::Horizontal)
         .filter(|wall| !removed_walls.contains(wall))
@@ -52,7 +92,7 @@ pub fn draw_grid_map(
             let from = start_pos + (wall.from.as_vec2() * scale);
 
             (
-                Mesh2d(wall_shape.clone()),
+                Mesh2d(rectangle_shape.clone()),
                 MeshMaterial2d(material.clone()),
                 Transform::from_scale(Vec3 {
                     x: scale,
@@ -77,7 +117,7 @@ pub fn draw_grid_map(
             let from = start_pos + (wall.from.as_vec2() * scale);
 
             (
-                Mesh2d(wall_shape.clone()),
+                Mesh2d(rectangle_shape.clone()),
                 MeshMaterial2d(material.clone()),
                 Transform::from_scale(Vec3 {
                     x: WALL_SIZE,
@@ -95,10 +135,6 @@ pub fn draw_grid_map(
         })
         .collect();
 
-    let from = IVec2 { x: 0, y: 0 };
-    let to = grid_map.get_extreme_cell_pos();
-    let distances = dijkstra(from, &grid_map, &removed_walls);
-    let path = get_path(from, to, &grid_map, &removed_walls);
     let cell_content_batch: Vec<(Text2d, TextColor, Transform)> = grid_map
         .iter_cells()
         .map(|cell| {
@@ -111,9 +147,9 @@ pub fn draw_grid_map(
             let cell_coords = start_pos + (cell.as_vec2() * scale);
             let is_on_path = path.contains_key(&cell);
             let color = if is_on_path {
-                Color::Srgba(LIME)
+                Color::Srgba(RED)
             } else {
-                COLOR
+                Color::Srgba(BLACK)
             };
 
             (
@@ -133,6 +169,7 @@ pub fn draw_grid_map(
         })
         .collect();
 
+    commands.spawn_batch(cell_batch);
     commands.spawn_batch(point_batch);
     commands.spawn_batch(horizontal_wall_batch);
     commands.spawn_batch(vertical_wall_batch);
