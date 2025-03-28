@@ -1,4 +1,3 @@
-use super::get_direction_from_coinflip;
 use crate::resources::{GridMap, Wall};
 use bevy::{prelude::*, utils::HashSet};
 use fastrand;
@@ -9,7 +8,7 @@ pub fn carve_aldous_broder_into_grid_map(grid_map: &GridMap) -> HashSet<Wall> {
 
     let cell_count = grid_map.get_cell_count() as usize;
     let random_start = fastrand::usize(0..cell_count);
-    let mut current_pos = grid_map.index_to_cell_pos((random_start as i32)).unwrap();
+    let mut current_pos = grid_map.index_to_cell_pos(random_start as i32).unwrap();
     visited.insert(current_pos);
 
     while visited.len() < cell_count {

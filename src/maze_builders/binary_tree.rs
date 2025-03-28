@@ -1,6 +1,6 @@
 use super::get_direction_from_coinflip;
 use crate::resources::{GridMap, Wall};
-use bevy::{prelude::*, utils::HashSet};
+use bevy::utils::HashSet;
 use fastrand;
 
 pub fn carve_binary_tree_into_grid_map(grid_map: &GridMap) -> HashSet<Wall> {
