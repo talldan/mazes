@@ -1,5 +1,6 @@
 use crate::maze_builders::*;
 use crate::resources::*;
+use crate::utils::dijkstra;
 use bevy::prelude::*;
 
 const POINT_SIZE: f32 = 4.0;
@@ -93,7 +94,36 @@ pub fn draw_grid_map(
         })
         .collect();
 
+    let distances = dijkstra(IVec2 { x: 0, y: 0 }, &grid_map, &removed_walls);
+    let cell_content_batch: Vec<(Text2d, Transform)> = grid_map
+        .iter_cells()
+        .map(|cell| {
+            let distance = distances.get(&cell);
+            let text = if let Some(distance) = distance {
+                Text2d::new(format!("{distance}"))
+            } else {
+                Text2d::new("-")
+            };
+            let cell_coords = start_pos + (cell.as_vec2() * scale);
+
+            (
+                text,
+                Transform::from_scale(Vec3 {
+                    x: 0.02 * scale,
+                    y: 0.02 * scale,
+                    z: 1.0,
+                })
+                .with_translation(Vec3 {
+                    x: cell_coords.x + (scale * 0.5),
+                    y: cell_coords.y + (scale * 0.5),
+                    z: 0.0,
+                }),
+            )
+        })
+        .collect();
+
     commands.spawn_batch(point_batch);
     commands.spawn_batch(horizontal_wall_batch);
     commands.spawn_batch(vertical_wall_batch);
+    commands.spawn_batch(cell_content_batch);
 }
