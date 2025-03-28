@@ -237,6 +237,13 @@ impl GridMap {
         (self.columns * (self.rows + 1)) + (self.rows * (self.columns + 1))
     }
 
+    pub fn get_extreme_cell_pos(&self) -> IVec2 {
+        IVec2 {
+            x: self.columns - 1,
+            y: self.rows - 1,
+        }
+    }
+
     pub fn iter_cells(&self) -> GridMapCellIterator {
         GridMapCellIterator {
             grid_map: self,

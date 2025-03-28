@@ -1,6 +1,7 @@
 use crate::maze_builders::*;
 use crate::resources::*;
-use crate::utils::dijkstra;
+use crate::utils::*;
+use bevy::color::palettes::css::LIME;
 use bevy::prelude::*;
 
 const POINT_SIZE: f32 = 4.0;
@@ -94,8 +95,11 @@ pub fn draw_grid_map(
         })
         .collect();
 
-    let distances = dijkstra(IVec2 { x: 0, y: 0 }, &grid_map, &removed_walls);
-    let cell_content_batch: Vec<(Text2d, Transform)> = grid_map
+    let from = IVec2 { x: 0, y: 0 };
+    let to = grid_map.get_extreme_cell_pos();
+    let distances = dijkstra(from, &grid_map, &removed_walls);
+    let path = get_path(from, to, &grid_map, &removed_walls);
+    let cell_content_batch: Vec<(Text2d, TextColor, Transform)> = grid_map
         .iter_cells()
         .map(|cell| {
             let distance = distances.get(&cell);
@@ -105,9 +109,16 @@ pub fn draw_grid_map(
                 Text2d::new("-")
             };
             let cell_coords = start_pos + (cell.as_vec2() * scale);
+            let is_on_path = path.contains_key(&cell);
+            let color = if is_on_path {
+                Color::Srgba(LIME)
+            } else {
+                COLOR
+            };
 
             (
                 text,
+                TextColor(color),
                 Transform::from_scale(Vec3 {
                     x: 0.02 * scale,
                     y: 0.02 * scale,

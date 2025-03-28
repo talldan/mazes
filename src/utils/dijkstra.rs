@@ -66,3 +66,47 @@ pub fn dijkstra(
 
     return distances;
 }
+
+pub fn get_path(
+    from: IVec2,
+    to: IVec2,
+    grid_map: &GridMap,
+    removed_walls: &HashSet<Wall>,
+) -> HashMap<IVec2, i32> {
+    let distances = dijkstra(from, grid_map, removed_walls);
+    let mut current = to;
+    let mut breadcrumbs: HashMap<IVec2, i32> = HashMap::new();
+    breadcrumbs.insert(current, 0);
+
+    while current != from {
+        let current_distance = distances.get(&current);
+        if current_distance.is_none() {
+            // Couldn't find a path.
+            break;
+        }
+
+        let neighbours = get_traversable_neighbours(current, grid_map, removed_walls);
+        let next = neighbours.iter().find(|neighbour| {
+            let neighbour_distance = distances.get(*neighbour);
+
+            if let (Some(neighbour_distance), Some(current_distance)) =
+                (neighbour_distance, current_distance)
+            {
+                return neighbour_distance < current_distance;
+            } else {
+                return false;
+            }
+        });
+
+        if let Some(next) = next {
+            current = *next;
+            breadcrumbs.insert(current, *current_distance.unwrap());
+        } else {
+            // Couldn't find a path.
+            // This shouldn't happen though, should've hit the earlier break.
+            break;
+        }
+    }
+
+    return breadcrumbs;
+}
