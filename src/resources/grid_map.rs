@@ -6,7 +6,7 @@ pub enum WallOrientation {
     Vertical,
 }
 
-#[derive(Hash, Eq, PartialEq)]
+#[derive(Hash, Eq, PartialEq, Copy, Clone)]
 pub struct Wall {
     pub from: IVec2,
     pub to: IVec2,
@@ -328,7 +328,7 @@ impl<'a> Iterator for GridMapWallIterator<'a> {
 }
 
 fn is_pos_in_bounds(pos: IVec2, columns: i32, rows: i32) -> bool {
-    pos.x < columns && pos.y < rows
+    pos.x < columns && pos.x >= 0 && pos.y < rows && pos.y >= 0
 }
 
 fn pos_to_index(pos: IVec2, columns: i32, rows: i32) -> Option<i32> {

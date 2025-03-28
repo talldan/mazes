@@ -1,6 +1,8 @@
+mod aldous_broder;
 mod binary_tree;
 mod sidewinder;
 
+pub use aldous_broder::*;
 pub use binary_tree::*;
 pub use sidewinder::*;
 

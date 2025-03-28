@@ -24,12 +24,13 @@ pub fn draw_grid_map(
         y: window_height - (PADDING_PX * 2.0),
     };
 
+    let show_dijkstra_overlay = false;
     let scale = grid_map.get_scale_from_available_space(available_space);
     let start_pos = grid_map.get_centered_grid_pos(scale);
     let point_shape = meshes.add(Circle::new(POINT_SIZE));
     let rectangle_shape = meshes.add(Rectangle::new(1.0, 1.0));
     let material = materials.add(COLOR);
-    let removed_walls = carve_sidewinder_into_grid_map(&grid_map);
+    let removed_walls = carve_aldous_broder_into_grid_map(&grid_map);
     let start = grid_map.get_north_east_cell_pos();
     let distances = dijkstra(start, &grid_map, &removed_walls);
     let (to, _) = get_most_distant(&distances);
@@ -42,7 +43,9 @@ pub fn draw_grid_map(
         .map(|cell| {
             let cell_coords = start_pos + (cell.as_vec2() * scale);
             let distance = distances.get(&cell);
-            let color = if let Some(distance) = distance {
+            let color = if !show_dijkstra_overlay {
+                Color::srgba(0.8, 0.8, 0.8, 1.0)
+            } else if let Some(distance) = distance {
                 let max = farthest_distance as f32;
                 let dist = *distance as f32;
                 let intensity = (max - dist) / max;
@@ -139,10 +142,18 @@ pub fn draw_grid_map(
         .iter_cells()
         .map(|cell| {
             let distance = distances.get(&cell);
-            let text = if let Some(distance) = distance {
+            let text = if !show_dijkstra_overlay {
+                if cell == from {
+                    Text2d::new(format!("GO"))
+                } else if cell == to {
+                    Text2d::new(format!("END"))
+                } else {
+                    Text2d::new(format!(""))
+                }
+            } else if let Some(distance) = distance {
                 Text2d::new(format!("{distance}"))
             } else {
-                Text2d::new("-")
+                Text2d::new("")
             };
             let cell_coords = start_pos + (cell.as_vec2() * scale);
             let is_on_path = path.contains_key(&cell);
