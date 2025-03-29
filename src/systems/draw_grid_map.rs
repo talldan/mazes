@@ -30,7 +30,7 @@ pub fn draw_grid_map(
     let point_shape = meshes.add(Circle::new(POINT_SIZE));
     let rectangle_shape = meshes.add(Rectangle::new(1.0, 1.0));
     let material = materials.add(COLOR);
-    let removed_walls = carve_aldous_broder_into_grid_map(&grid_map);
+    let removed_walls = carve_wilson_into_grid_map(&grid_map);
     let start = grid_map.get_north_east_cell_pos();
     let distances = dijkstra(start, &grid_map, &removed_walls);
     let (to, _) = get_most_distant(&distances);
