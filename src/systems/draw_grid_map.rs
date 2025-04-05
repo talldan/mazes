@@ -4,8 +4,8 @@ use crate::utils::*;
 use bevy::color::palettes::css::*;
 use bevy::prelude::*;
 
-const POINT_SIZE: f32 = 4.0;
-const WALL_SIZE: f32 = 2.0;
+const POINT_SIZE: f32 = 0.12;
+const WALL_SIZE: f32 = 0.08;
 const PADDING_PX: f32 = 75.0;
 const COLOR: Color = Color::srgb(0.2, 0.2, 0.2);
 
@@ -38,151 +38,163 @@ pub fn draw_grid_map(
     let (from, farthest_distance) = get_most_distant(&distances);
     let path = get_path(from, to, &grid_map, &removed_walls);
 
-    let cell_batch: Vec<(Mesh2d, MeshMaterial2d<ColorMaterial>, Transform)> = grid_map
-        .iter_cells()
-        .map(|cell| {
-            let cell_coords = start_pos + (cell.as_vec2() * scale);
-            let distance = distances.get(&cell);
-            let color = if !show_dijkstra_overlay {
-                Color::srgba(0.8, 0.8, 0.8, 1.0)
-            } else if let Some(distance) = distance {
-                let max = farthest_distance as f32;
-                let dist = *distance as f32;
-                let intensity = (max - dist) / max;
-                let dark = 1.0 * intensity;
-                let bright = 0.5 + (0.5 * intensity);
-                Color::srgb(dark, bright, dark)
-            } else {
-                Color::srgba(1.0, 1.0, 1.0, 0.0)
-            };
-            let background_material = materials.add(color);
-            (
-                Mesh2d(rectangle_shape.clone()),
-                MeshMaterial2d(background_material),
-                Transform::from_scale(Vec3 {
-                    x: scale,
-                    y: scale,
-                    z: 1.0,
-                })
-                .with_translation(Vec3 {
-                    // The rectangle will be centered over the 'from' position,
-                    // so we need to move it by another half of its length.
-                    x: cell_coords.x + (scale * 0.5),
-                    y: cell_coords.y + (scale * 0.5),
-                    z: -0.1,
-                }),
-            )
-        })
-        .collect();
+    println!("Scale: {scale}, {available_space}");
 
-    let point_batch: Vec<(Mesh2d, MeshMaterial2d<ColorMaterial>, Transform)> = grid_map
-        .iter_points()
-        .map(|point_pos| {
-            let cell_coords = start_pos + (point_pos.as_vec2() * scale);
+    let grid_entity = commands
+        .spawn((
+            Transform::from_scale(Vec3 {
+                x: scale,
+                y: scale,
+                z: 1.0,
+            })
+            .with_translation(Vec3 {
+                x: start_pos.x,
+                y: start_pos.y,
+                z: 0.0,
+            }),
+            InheritedVisibility::VISIBLE,
+        ))
+        .id();
 
-            (
+    grid_map.iter_points().for_each(|point_pos| {
+        let point_entity = commands
+            .spawn((
                 Mesh2d(point_shape.clone()),
                 MeshMaterial2d(material.clone()),
-                Transform::from_xyz(cell_coords.x, cell_coords.y, 0.0),
-            )
-        })
-        .collect();
+                Transform::from_translation(point_pos.as_vec2().extend(0.0)),
+            ))
+            .id();
 
-    let horizontal_wall_batch: Vec<(Mesh2d, MeshMaterial2d<ColorMaterial>, Transform)> = grid_map
-        .iter_walls(WallOrientation::Horizontal)
-        .filter(|wall| !removed_walls.contains(wall))
-        .map(|wall| {
-            let from = start_pos + (wall.from.as_vec2() * scale);
+        commands.entity(grid_entity).add_child(point_entity);
+    });
 
-            (
+    grid_map.iter_cells().for_each(|cell| {
+        let translation = cell.as_vec2();
+        let distance = distances.get(&cell);
+        let background_color = if !show_dijkstra_overlay {
+            Color::srgba(0.8, 0.8, 0.8, 1.0)
+        } else if let Some(distance) = distance {
+            let max = farthest_distance as f32;
+            let dist = *distance as f32;
+            let intensity = (max - dist) / max;
+            let dark = 1.0 * intensity;
+            let bright = 0.5 + (0.5 * intensity);
+            Color::srgb(dark, bright, dark)
+        } else {
+            Color::srgba(1.0, 1.0, 1.0, 0.0)
+        };
+        let background_material = materials.add(background_color);
+
+        let cell_entity = commands
+            .spawn((
                 Mesh2d(rectangle_shape.clone()),
-                MeshMaterial2d(material.clone()),
-                Transform::from_scale(Vec3 {
-                    x: scale,
-                    y: WALL_SIZE,
-                    z: 1.0,
-                })
-                .with_translation(Vec3 {
+                MeshMaterial2d(background_material),
+                Transform::from_scale(Vec3::ONE).with_translation(Vec3 {
                     // The rectangle will be centered over the 'from' position,
                     // so we need to move it by another half of its length.
-                    x: from.x + (scale * 0.5),
-                    y: from.y,
-                    z: 0.0,
+                    x: translation.x + 0.5,
+                    y: translation.y + 0.5,
+                    z: -0.1,
                 }),
-            )
-        })
-        .collect();
+            ))
+            .id();
 
-    let vertical_wall_batch: Vec<(Mesh2d, MeshMaterial2d<ColorMaterial>, Transform)> = grid_map
-        .iter_walls(WallOrientation::Vertical)
-        .filter(|wall| !removed_walls.contains(wall))
-        .map(|wall| {
-            let from = start_pos + (wall.from.as_vec2() * scale);
-
-            (
-                Mesh2d(rectangle_shape.clone()),
-                MeshMaterial2d(material.clone()),
-                Transform::from_scale(Vec3 {
-                    x: WALL_SIZE,
-                    y: scale,
-                    z: 1.0,
-                })
-                .with_translation(Vec3 {
-                    // The rectangle will be centered over the 'from' position,
-                    // so we need to move it by another half of its length.
-                    x: from.x,
-                    y: from.y + (scale * 0.5),
-                    z: 0.0,
-                }),
-            )
-        })
-        .collect();
-
-    let cell_content_batch: Vec<(Text2d, TextColor, Transform)> = grid_map
-        .iter_cells()
-        .map(|cell| {
-            let distance = distances.get(&cell);
-            let text = if !show_dijkstra_overlay {
-                if cell == from {
-                    Text2d::new(format!("GO"))
-                } else if cell == to {
-                    Text2d::new(format!("END"))
-                } else {
-                    Text2d::new(format!(""))
-                }
-            } else if let Some(distance) = distance {
+        let text = if !show_dijkstra_overlay {
+            if cell == from {
+                Text2d::new(format!("GO"))
+            } else if cell == to {
+                Text2d::new(format!("END"))
+            } else {
+                Text2d::new(format!(""))
+            }
+        } else {
+            if let Some(distance) = distance {
                 Text2d::new(format!("{distance}"))
             } else {
                 Text2d::new("")
-            };
-            let cell_coords = start_pos + (cell.as_vec2() * scale);
-            let is_on_path = path.contains_key(&cell);
-            let color = if is_on_path {
-                Color::Srgba(RED)
-            } else {
-                Color::Srgba(BLACK)
-            };
+            }
+        };
+        let is_on_path = path.contains_key(&cell);
+        let text_color = if is_on_path {
+            Color::Srgba(RED)
+        } else {
+            Color::Srgba(BLACK)
+        };
 
-            (
+        let text_entity = commands
+            .spawn((
                 text,
-                TextColor(color),
+                TextColor(text_color),
                 Transform::from_scale(Vec3 {
-                    x: 0.02 * scale,
-                    y: 0.02 * scale,
+                    x: 0.02,
+                    y: 0.02,
                     z: 1.0,
                 })
                 .with_translation(Vec3 {
-                    x: cell_coords.x + (scale * 0.5),
-                    y: cell_coords.y + (scale * 0.5),
+                    // The rectangle will be centered over the 'from' position,
+                    // so we need to move it by another half of its length.
+                    x: translation.x + 0.5,
+                    y: translation.y + 0.5,
                     z: 0.0,
                 }),
-            )
-        })
-        .collect();
+            ))
+            .id();
 
-    commands.spawn_batch(cell_batch);
-    commands.spawn_batch(point_batch);
-    commands.spawn_batch(horizontal_wall_batch);
-    commands.spawn_batch(vertical_wall_batch);
-    commands.spawn_batch(cell_content_batch);
+        commands.entity(grid_entity).add_child(cell_entity);
+        commands.entity(grid_entity).add_child(text_entity);
+    });
+
+    grid_map
+        .iter_walls(WallOrientation::Horizontal)
+        .filter(|wall| !removed_walls.contains(wall))
+        .for_each(|wall| {
+            let from = wall.from.as_vec2();
+            let wall_entity = commands
+                .spawn((
+                    Mesh2d(rectangle_shape.clone()),
+                    MeshMaterial2d(material.clone()),
+                    Transform::from_scale(Vec3 {
+                        x: 1.0,
+                        y: WALL_SIZE,
+                        z: 1.0,
+                    })
+                    .with_translation(Vec3 {
+                        // The rectangle will be centered over the 'from' position,
+                        // so we need to move it by another half of its length.
+                        x: from.x + 0.5,
+                        y: from.y,
+                        z: 0.0,
+                    }),
+                ))
+                .id();
+
+            commands.entity(grid_entity).add_child(wall_entity);
+        });
+
+    grid_map
+        .iter_walls(WallOrientation::Vertical)
+        .filter(|wall| !removed_walls.contains(wall))
+        .for_each(|wall| {
+            let from = wall.from.as_vec2();
+            let wall_entity = commands
+                .spawn((
+                    Mesh2d(rectangle_shape.clone()),
+                    MeshMaterial2d(material.clone()),
+                    Transform::from_scale(Vec3 {
+                        x: WALL_SIZE,
+                        y: 1.0,
+                        z: 1.0,
+                    })
+                    .with_translation(Vec3 {
+                        // The rectangle will be centered over the 'from' position,
+                        // so we need to move it by another half of its length.
+                        x: from.x,
+                        y: from.y + 0.5,
+                        z: 0.0,
+                    }),
+                ))
+                .id();
+
+            commands.entity(grid_entity).add_child(wall_entity);
+        });
 }
