@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 
 mod components;
+mod events;
 mod maze_builders;
 mod resources;
 mod systems;
