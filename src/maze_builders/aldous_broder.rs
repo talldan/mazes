@@ -1,13 +1,14 @@
 use crate::resources::{GridMap, Wall};
 use bevy::{prelude::*, utils::HashSet};
-use fastrand;
+use fastrand::Rng;
 
-pub fn carve_aldous_broder_into_grid_map(grid_map: &GridMap) -> HashSet<Wall> {
+pub fn carve_aldous_broder_into_grid_map(grid_map: &GridMap, rng_seed: u64) -> HashSet<Wall> {
+    let mut rng = Rng::with_seed(rng_seed);
     let mut removed_walls = HashSet::new();
     let mut visited = HashSet::new();
 
     let cell_count = grid_map.get_cell_count() as usize;
-    let random_start = fastrand::usize(0..cell_count);
+    let random_start = rng.usize(0..cell_count);
     let mut current_pos = grid_map.index_to_cell_pos(random_start as i32).unwrap();
     visited.insert(current_pos);
 
@@ -37,7 +38,7 @@ pub fn carve_aldous_broder_into_grid_map(grid_map: &GridMap) -> HashSet<Wall> {
             .collect();
 
         let num_possible_neighbours = possible_neighbours.len();
-        let random_neighbour_index = fastrand::usize(0..(num_possible_neighbours));
+        let random_neighbour_index = rng.usize(0..(num_possible_neighbours));
         let neighbour = possible_neighbours.iter().nth(random_neighbour_index);
 
         if let Some((Some(neighbour_cell), Some(neighbour_wall))) = neighbour {

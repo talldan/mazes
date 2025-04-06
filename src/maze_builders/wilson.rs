@@ -1,24 +1,25 @@
 use crate::resources::{GridMap, Wall};
 use bevy::{prelude::*, utils::hashbrown::HashSet};
-use fastrand;
+use fastrand::Rng;
 
-fn get_random_cell(grid_map: &GridMap) -> IVec2 {
+fn get_random_cell(grid_map: &GridMap, rng: &mut Rng) -> IVec2 {
     let cell_count = grid_map.get_cell_count() as usize;
-    let random_start = fastrand::usize(0..cell_count);
+    let random_start = rng.usize(0..cell_count);
     return grid_map.index_to_cell_pos(random_start as i32).unwrap();
 }
 
-fn get_random_unvisited_cell(grid_map: &GridMap, visited: &HashSet<IVec2>) -> IVec2 {
-    let mut cell = get_random_cell(grid_map);
+fn get_random_unvisited_cell(grid_map: &GridMap, visited: &HashSet<IVec2>, rng: &mut Rng) -> IVec2 {
+    let mut cell = get_random_cell(grid_map, rng);
 
     while !visited.contains(&cell) {
-        cell = get_random_cell(grid_map);
+        cell = get_random_cell(grid_map, rng);
     }
 
     return cell;
 }
 
-pub fn carve_wilson_into_grid_map(grid_map: &GridMap) -> HashSet<Wall> {
+pub fn carve_wilson_into_grid_map(grid_map: &GridMap, rng_seed: u64) -> HashSet<Wall> {
+    let mut rng = Rng::with_seed(rng_seed);
     let mut removed_walls = HashSet::new();
     let mut visited = HashSet::new();
     // The first cell is automatically marked as visited so that other 'paths'
@@ -27,7 +28,7 @@ pub fn carve_wilson_into_grid_map(grid_map: &GridMap) -> HashSet<Wall> {
 
     let mut run: Vec<(IVec2, Wall)> = vec![];
     let cell_count = grid_map.get_cell_count() as usize;
-    let mut current_pos = get_random_unvisited_cell(grid_map, &visited);
+    let mut current_pos = get_random_unvisited_cell(grid_map, &visited, &mut rng);
 
     while visited.len() < cell_count {
         let neighbours = vec![
@@ -55,7 +56,7 @@ pub fn carve_wilson_into_grid_map(grid_map: &GridMap) -> HashSet<Wall> {
             .collect();
 
         let num_possible_neighbours = possible_neighbours.len();
-        let random_neighbour_index = fastrand::usize(0..(num_possible_neighbours));
+        let random_neighbour_index = rng.usize(0..(num_possible_neighbours));
         let neighbour = possible_neighbours.into_iter().nth(random_neighbour_index);
 
         if let Some((Some(neighbour_cell), Some(neighbour_wall))) = neighbour {
@@ -81,7 +82,7 @@ pub fn carve_wilson_into_grid_map(grid_map: &GridMap) -> HashSet<Wall> {
                     removed_walls.insert(*wall);
                 });
                 run.clear();
-                current_pos = get_random_unvisited_cell(grid_map, &visited);
+                current_pos = get_random_unvisited_cell(grid_map, &visited, &mut rng);
                 continue;
             }
 

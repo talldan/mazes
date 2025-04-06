@@ -1,16 +1,17 @@
 use super::get_direction_from_coinflip;
 use crate::resources::{GridMap, Wall};
 use bevy::{prelude::*, utils::HashSet};
-use fastrand;
+use fastrand::Rng;
 
-pub fn carve_sidewinder_into_grid_map(grid_map: &GridMap) -> HashSet<Wall> {
+pub fn carve_sidewinder_into_grid_map(grid_map: &GridMap, rng_seed: u64) -> HashSet<Wall> {
+    let mut rng = Rng::with_seed(rng_seed);
     let mut removed_walls = HashSet::new();
     let mut run = Vec::new();
 
     grid_map.iter_cells().for_each(|cell_pos| {
         run.push(cell_pos);
 
-        let coinflip = fastrand::bool();
+        let coinflip = rng.bool();
         let mut direction = get_direction_from_coinflip(coinflip);
 
         let mut wall = grid_map.inner_wall_from_cell_pos(cell_pos, direction);
@@ -30,7 +31,7 @@ pub fn carve_sidewinder_into_grid_map(grid_map: &GridMap) -> HashSet<Wall> {
         // When travelling north, pick a random cell to carve north from one of
         // the stored 'run' cells.
         if direction == Dir2::NORTH {
-            let run_index = fastrand::usize(0..run.len());
+            let run_index = rng.usize(0..run.len());
             let run_cell = run[run_index];
             wall = grid_map.inner_wall_from_cell_pos(run_cell, direction);
             run.clear();

@@ -1,13 +1,14 @@
 use super::get_direction_from_coinflip;
 use crate::resources::{GridMap, Wall};
 use bevy::utils::HashSet;
-use fastrand;
+use fastrand::Rng;
 
-pub fn carve_binary_tree_into_grid_map(grid_map: &GridMap) -> HashSet<Wall> {
+pub fn carve_binary_tree_into_grid_map(grid_map: &GridMap, rng_seed: u64) -> HashSet<Wall> {
+    let mut rng = Rng::with_seed(rng_seed);
     let mut removed_walls = HashSet::new();
 
     grid_map.iter_cells().for_each(|cell_pos| {
-        let coinflip = fastrand::bool();
+        let coinflip = rng.bool();
         let mut direction = get_direction_from_coinflip(coinflip);
         let mut wall = grid_map.inner_wall_from_cell_pos(cell_pos, direction);
 

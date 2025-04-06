@@ -12,6 +12,7 @@ const COLOR: Color = Color::srgb(0.2, 0.2, 0.2);
 pub fn draw_grid_map(
     mut commands: Commands,
     grid_map: Res<GridMap>,
+    rng_seed: Res<RngSeed>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
     windows: Query<&mut Window>,
@@ -30,15 +31,13 @@ pub fn draw_grid_map(
     let point_shape = meshes.add(Circle::new(POINT_SIZE));
     let rectangle_shape = meshes.add(Rectangle::new(1.0, 1.0));
     let material = materials.add(COLOR);
-    let removed_walls = carve_wilson_into_grid_map(&grid_map);
+    let removed_walls = carve_aldous_broder_into_grid_map(&grid_map, rng_seed.0);
     let start = grid_map.get_north_east_cell_pos();
     let distances = dijkstra(start, &grid_map, &removed_walls);
     let (to, _) = get_most_distant(&distances);
     let distances = dijkstra(to, &grid_map, &removed_walls);
     let (from, farthest_distance) = get_most_distant(&distances);
     let path = get_path(from, to, &grid_map, &removed_walls);
-
-    println!("Scale: {scale}, {available_space}");
 
     let grid_entity = commands
         .spawn((
