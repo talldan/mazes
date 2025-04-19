@@ -1,16 +1,5 @@
+use crate::components::*;
 use bevy::prelude::*;
-
-#[derive(Eq, PartialEq, Copy, Clone)]
-pub enum WallOrientation {
-    Horizontal,
-    Vertical,
-}
-
-#[derive(Hash, Eq, PartialEq, Copy, Clone)]
-pub struct Wall {
-    pub from: IVec2,
-    pub to: IVec2,
-}
 
 pub enum Direction {
     Up,

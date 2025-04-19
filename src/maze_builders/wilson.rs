@@ -1,4 +1,5 @@
-use crate::resources::{GridMap, Wall};
+use crate::components::Wall;
+use crate::resources::GridMap;
 use bevy::{prelude::*, utils::hashbrown::HashSet};
 use fastrand::Rng;
 

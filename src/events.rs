@@ -18,5 +18,5 @@ pub struct ShowDijkstraOverlay {
 
 #[derive(Event, Debug)]
 pub struct UpdateSeed {
-    pub seed: usize,
+    pub seed: u64,
 }
