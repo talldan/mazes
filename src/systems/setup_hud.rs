@@ -1,6 +1,7 @@
 use crate::components::*;
 use crate::resources::*;
 use bevy::prelude::*;
+use fastrand;
 
 const NORMAL_BUTTON: Color = Color::srgb(0.15, 0.15, 0.15);
 const HOVERED_BUTTON: Color = Color::srgb(0.25, 0.25, 0.25);
@@ -124,6 +125,8 @@ pub fn update_button_state(
 pub fn hud_action(
     interaction_query: Query<(&Interaction, &HudAction), (Changed<Interaction>, With<Button>)>,
     mut overlay_state: ResMut<OverlayState>,
+    mut rng_seed: ResMut<RngSeed>,
+    mut maze_builder_type: ResMut<MazeBuilderType>,
 ) {
     for (interaction, hud_action) in &interaction_query {
         if *interaction == Interaction::Pressed {
@@ -131,8 +134,12 @@ pub fn hud_action(
                 HudAction::ToggleOverlay => {
                     overlay_state.0 = !overlay_state.0;
                 }
-                HudAction::RandomiseSeed => {}
-                HudAction::ChangeMazeType(maze_type) => {}
+                HudAction::RandomiseSeed => {
+                    rng_seed.0 = fastrand::u64(..u64::MAX);
+                }
+                HudAction::ChangeMazeType(new_maze_type) => {
+                    *maze_builder_type = *new_maze_type;
+                }
             }
         }
     }

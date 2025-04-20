@@ -3,14 +3,12 @@ use crate::maze_builders::*;
 use crate::resources::*;
 use bevy::prelude::*;
 
-pub fn update_walls(
-    grid_map: Res<GridMap>,
-    rng_seed: Res<RngSeed>,
+pub fn update_wall_visibility(
+    removed_walls: Res<RemovedWalls>,
     mut walls_query: Query<(&Wall, &mut Visibility)>,
 ) {
-    let removed_walls = carve_aldous_broder_into_grid_map(&grid_map, rng_seed.0);
     for (wall, mut visibility) in &mut walls_query {
-        *visibility = if removed_walls.contains(wall) {
+        *visibility = if removed_walls.0.contains(wall) {
             Visibility::Hidden
         } else {
             Visibility::Visible

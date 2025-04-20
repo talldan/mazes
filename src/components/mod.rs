@@ -1,4 +1,4 @@
-use crate::maze_builders::MazeBuilderType;
+use crate::resources::MazeBuilderType;
 use bevy::prelude::*;
 
 #[derive(Component)]
