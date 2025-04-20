@@ -21,12 +21,11 @@ fn main() {
         .add_systems(Update, (button_state_system, hud_action))
         .add_systems(
             Update,
-            (update_walls, update_overlay)
-                .run_if(resource_changed::<RngSeed>.and(not(resource_added::<RngSeed>))),
+            update_walls.run_if(resource_changed::<RngSeed>.and(not(resource_added::<RngSeed>))),
         )
         .add_systems(
             Update,
-            update_overlay
+            update_overlay_visibility
                 .run_if(resource_changed::<OverlayState>.and(not(resource_added::<OverlayState>))),
         )
         .run();

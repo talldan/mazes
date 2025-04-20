@@ -27,3 +27,6 @@ pub struct Wall {
 pub struct Cell {
     pub position: IVec2,
 }
+
+#[derive(Component)]
+pub struct OverlayVisibility(pub bool);

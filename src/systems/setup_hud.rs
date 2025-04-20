@@ -9,9 +9,9 @@ const PRESSED_BUTTON: Color = Color::srgb(0.35, 0.75, 0.35);
 
 fn get_toggle_overlay_text<'a>(is_overlay_shown: bool) -> String {
     if is_overlay_shown {
-        String::from("Hide overlay")
+        String::from("Hide solution")
     } else {
-        String::from("Show overlay")
+        String::from("Show solution")
     }
 }
 

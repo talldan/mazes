@@ -40,6 +40,7 @@ pub fn setup_grid_map(
     let (to, _) = get_most_distant(&distances);
     let distances = dijkstra(to, &grid_map, &removed_walls);
     let (from, farthest_distance) = get_most_distant(&distances);
+    let distances = dijkstra(from, &grid_map, &removed_walls);
     let path = get_path(from, to, &grid_map, &removed_walls);
 
     let grid_entity = commands
@@ -73,16 +74,12 @@ pub fn setup_grid_map(
     grid_map.iter_cells().for_each(|cell_position| {
         let translation = cell_position.as_vec2();
         let distance = distances.get(&cell_position);
-        let background_color = get_cell_background_color(distance, farthest_distance, has_overlay);
-        let background_material = materials.add(background_color);
 
         let cell_entity = commands
             .spawn((
                 Cell {
                     position: cell_position,
                 },
-                Mesh2d(rectangle_shape.clone()),
-                MeshMaterial2d(background_material),
                 Transform::from_scale(Vec3::ONE).with_translation(Vec3 {
                     // The rectangle will be centered over the 'from' position,
                     // so we need to move it by another half of its length.
@@ -90,28 +87,83 @@ pub fn setup_grid_map(
                     y: translation.y + 0.5,
                     z: -0.1,
                 }),
+                Visibility::Visible,
             ))
             .id();
 
+        let overlay_visibility = if has_overlay {
+            Visibility::Visible
+        } else {
+            Visibility::Hidden
+        };
+        let overlay_background_color = get_cell_background_color(distance, farthest_distance, true);
+        let overlay_background_material = materials.add(overlay_background_color);
+        let overlay_background_entity = commands
+            .spawn((
+                OverlayVisibility(true),
+                Mesh2d(rectangle_shape.clone()),
+                MeshMaterial2d(overlay_background_material),
+                Transform::from_scale(Vec3::ONE),
+                overlay_visibility,
+            ))
+            .id();
         let is_start = cell_position == from;
         let is_end = cell_position == to;
         let is_on_path = path.contains_key(&cell_position);
-        let text = get_cell_text(is_start, is_end, distance, has_overlay);
         let text_color = get_cell_text_color(is_on_path);
-
-        let text_entity = commands
+        let overlay_text = get_cell_text(is_start, is_end, distance, true);
+        let overlay_text_entity = commands
             .spawn((
-                Text2d(text),
+                OverlayVisibility(true),
+                Text2d(overlay_text),
                 TextColor(text_color),
                 Transform::from_scale(Vec3 {
                     x: 0.02,
                     y: 0.02,
                     z: 1.0,
                 }),
+                overlay_visibility,
             ))
             .id();
 
-        commands.entity(cell_entity).add_child(text_entity);
+        let cell_contents_visibility = if has_overlay {
+            Visibility::Hidden
+        } else {
+            Visibility::Visible
+        };
+        let cell_background_color = get_cell_background_color(distance, farthest_distance, false);
+        let cell_background_material = materials.add(cell_background_color);
+        let cell_background_entity = commands
+            .spawn((
+                OverlayVisibility(false),
+                Mesh2d(rectangle_shape.clone()),
+                MeshMaterial2d(cell_background_material),
+                Transform::from_scale(Vec3::ONE),
+                cell_contents_visibility,
+            ))
+            .id();
+        let cell_text_color = get_cell_text_color(is_on_path);
+        let cell_text = get_cell_text(is_start, is_end, distance, false);
+        let cell_text_entity = commands
+            .spawn((
+                OverlayVisibility(false),
+                Text2d(cell_text),
+                TextColor(cell_text_color.clone()),
+                Transform::from_scale(Vec3 {
+                    x: 0.02,
+                    y: 0.02,
+                    z: 1.0,
+                }),
+                cell_contents_visibility,
+            ))
+            .id();
+
+        commands.entity(cell_entity).add_children(&[
+            cell_background_entity,
+            cell_text_entity,
+            overlay_background_entity,
+            overlay_text_entity,
+        ]);
         commands.entity(grid_entity).add_child(cell_entity);
     });
 
