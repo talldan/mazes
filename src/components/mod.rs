@@ -8,8 +8,18 @@ pub enum HudAction {
     ChangeMazeType(MazeBuilderType),
 }
 
-#[derive(Component)]
-pub struct ToggleOverlayText;
+#[derive(Component, Clone, PartialEq)]
+pub enum ButtonVariant {
+    Normal(String),
+    Toggle(
+        // initial state,
+        bool,
+        // inactive text
+        String,
+        // active text
+        String,
+    ),
+}
 
 #[derive(Component, Eq, PartialEq, Copy, Clone)]
 pub enum WallOrientation {

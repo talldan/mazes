@@ -18,7 +18,7 @@ fn main() {
         .insert_resource(RngSeed(0))
         .insert_resource(OverlayState(false))
         .add_systems(Startup, (setup_camera, setup_hud, setup_grid_map))
-        .add_systems(Update, (button_state_system, hud_action))
+        .add_systems(Update, (update_button_state, hud_action))
         .add_systems(
             Update,
             update_walls.run_if(resource_changed::<RngSeed>.and(not(resource_added::<RngSeed>))),
