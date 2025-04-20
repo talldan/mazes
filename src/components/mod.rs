@@ -8,17 +8,10 @@ pub enum HudAction {
     ChangeMazeType(MazeBuilderType),
 }
 
-#[derive(Component, Clone, PartialEq)]
+#[derive(Component, Eq, PartialEq, Copy, Clone)]
 pub enum ButtonVariant {
-    Normal(String),
-    Toggle(
-        // initial state,
-        bool,
-        // inactive text
-        String,
-        // active text
-        String,
-    ),
+    Normal,
+    Toggle(bool),
 }
 
 #[derive(Component, Eq, PartialEq, Copy, Clone)]
