@@ -1,5 +1,4 @@
 use crate::components::*;
-use crate::maze_builders::*;
 use crate::resources::*;
 use bevy::prelude::*;
 

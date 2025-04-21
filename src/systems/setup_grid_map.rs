@@ -91,41 +91,6 @@ pub fn setup_grid_map(
             ))
             .id();
 
-        let overlay_visibility = if has_overlay {
-            Visibility::Visible
-        } else {
-            Visibility::Hidden
-        };
-        let overlay_background_color = get_cell_background_color(distance, farthest_distance, true);
-        let overlay_background_material = materials.add(overlay_background_color);
-        let overlay_background_entity = commands
-            .spawn((
-                OverlayVisibility(true),
-                Mesh2d(rectangle_shape.clone()),
-                MeshMaterial2d(overlay_background_material),
-                Transform::from_scale(Vec3::ONE),
-                overlay_visibility,
-            ))
-            .id();
-        let is_start = cell_position == from;
-        let is_end = cell_position == to;
-        let is_on_path = path.contains_key(&cell_position);
-        let text_color = get_cell_text_color(is_on_path);
-        let overlay_text = get_cell_text(is_start, is_end, distance, true);
-        let overlay_text_entity = commands
-            .spawn((
-                OverlayVisibility(true),
-                Text2d(overlay_text),
-                TextColor(text_color),
-                Transform::from_scale(Vec3 {
-                    x: 0.02,
-                    y: 0.02,
-                    z: 1.0,
-                }),
-                overlay_visibility,
-            ))
-            .id();
-
         let cell_contents_visibility = if has_overlay {
             Visibility::Hidden
         } else {
@@ -135,6 +100,7 @@ pub fn setup_grid_map(
         let cell_background_material = materials.add(cell_background_color);
         let cell_background_entity = commands
             .spawn((
+                CellContentBackground,
                 OverlayVisibility(false),
                 Mesh2d(rectangle_shape.clone()),
                 MeshMaterial2d(cell_background_material),
@@ -142,10 +108,14 @@ pub fn setup_grid_map(
                 cell_contents_visibility,
             ))
             .id();
+        let is_start = cell_position == from;
+        let is_end = cell_position == to;
+        let is_on_path = path.contains_key(&cell_position);
         let cell_text_color = get_cell_text_color(is_on_path);
         let cell_text = get_cell_text(is_start, is_end, distance, false);
         let cell_text_entity = commands
             .spawn((
+                CellContentText,
                 OverlayVisibility(false),
                 Text2d(cell_text),
                 TextColor(cell_text_color.clone()),
@@ -155,6 +125,40 @@ pub fn setup_grid_map(
                     z: 1.0,
                 }),
                 cell_contents_visibility,
+            ))
+            .id();
+
+        let overlay_visibility = if has_overlay {
+            Visibility::Visible
+        } else {
+            Visibility::Hidden
+        };
+        let overlay_background_color = get_cell_background_color(distance, farthest_distance, true);
+        let overlay_background_material = materials.add(overlay_background_color);
+        let overlay_background_entity = commands
+            .spawn((
+                CellOverlayBackground,
+                OverlayVisibility(true),
+                Mesh2d(rectangle_shape.clone()),
+                MeshMaterial2d(overlay_background_material),
+                Transform::from_scale(Vec3::ONE),
+                overlay_visibility,
+            ))
+            .id();
+        let text_color = get_cell_text_color(is_on_path);
+        let overlay_text = get_cell_text(is_start, is_end, distance, true);
+        let overlay_text_entity = commands
+            .spawn((
+                CellOverlayText,
+                OverlayVisibility(true),
+                Text2d(overlay_text),
+                TextColor(text_color),
+                Transform::from_scale(Vec3 {
+                    x: 0.02,
+                    y: 0.02,
+                    z: 1.0,
+                }),
+                overlay_visibility,
             ))
             .id();
 

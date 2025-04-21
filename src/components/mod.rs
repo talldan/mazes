@@ -32,4 +32,14 @@ pub struct Cell {
 }
 
 #[derive(Component)]
+pub struct CellContentText;
+#[derive(Component)]
+pub struct CellContentBackground;
+
+#[derive(Component)]
+pub struct CellOverlayText;
+#[derive(Component)]
+pub struct CellOverlayBackground;
+
+#[derive(Component)]
 pub struct OverlayVisibility(pub bool);

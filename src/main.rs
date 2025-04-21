@@ -34,7 +34,7 @@ fn main() {
         )
         .add_systems(
             Update,
-            update_wall_visibility
+            (update_cell_content, update_wall_visibility)
                 .run_if(resource_changed::<RemovedWalls>.and(not(resource_added::<RemovedWalls>))),
         )
         .add_systems(
