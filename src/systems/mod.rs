@@ -1,3 +1,4 @@
+mod handle_hud_action;
 mod map_utils;
 mod setup_camera;
 mod setup_grid_map;
@@ -7,6 +8,7 @@ mod update_overlay_visibility;
 mod update_removed_walls;
 mod update_wall_visibility;
 
+pub use handle_hud_action::*;
 pub use setup_camera::*;
 pub use setup_grid_map::*;
 pub use setup_hud::*;

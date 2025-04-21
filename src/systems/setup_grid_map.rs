@@ -1,9 +1,7 @@
 use super::map_utils::*;
 use crate::components::*;
-use crate::maze_builders::*;
 use crate::resources::*;
 use crate::utils::*;
-use bevy::color::palettes::css::*;
 use bevy::prelude::*;
 
 const POINT_SIZE: f32 = 0.12;
@@ -14,8 +12,8 @@ const COLOR: Color = Color::srgb(0.2, 0.2, 0.2);
 pub fn setup_grid_map(
     mut commands: Commands,
     grid_map: Res<GridMap>,
-    rng_seed: Res<RngSeed>,
     overlay_state: Res<OverlayState>,
+    removed_walls: Res<RemovedWalls>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
     windows: Query<&mut Window>,
@@ -34,14 +32,13 @@ pub fn setup_grid_map(
     let point_shape = meshes.add(Circle::new(POINT_SIZE));
     let rectangle_shape = meshes.add(Rectangle::new(1.0, 1.0));
     let material = materials.add(COLOR);
-    let removed_walls = carve_aldous_broder_into_grid_map(&grid_map, rng_seed.0);
     let start = grid_map.get_north_east_cell_pos();
-    let distances = dijkstra(start, &grid_map, &removed_walls);
+    let distances = dijkstra(start, &grid_map, &removed_walls.0);
     let (to, _) = get_most_distant(&distances);
-    let distances = dijkstra(to, &grid_map, &removed_walls);
+    let distances = dijkstra(to, &grid_map, &removed_walls.0);
     let (from, farthest_distance) = get_most_distant(&distances);
-    let distances = dijkstra(from, &grid_map, &removed_walls);
-    let path = get_path(from, to, &grid_map, &removed_walls);
+    let distances = dijkstra(from, &grid_map, &removed_walls.0);
+    let path = get_path(from, to, &grid_map, &removed_walls.0);
 
     let grid_entity = commands
         .spawn((
@@ -175,7 +172,7 @@ pub fn setup_grid_map(
         .iter_walls(WallOrientation::Horizontal)
         .for_each(|wall| {
             let from = wall.from.as_vec2();
-            let visibility = if removed_walls.contains(&wall) {
+            let visibility = if removed_walls.0.contains(&wall) {
                 Visibility::Hidden
             } else {
                 Visibility::Visible
@@ -210,7 +207,7 @@ pub fn setup_grid_map(
         .iter_walls(WallOrientation::Vertical)
         .for_each(|wall| {
             let from = wall.from.as_vec2();
-            let visibility = if removed_walls.contains(&wall) {
+            let visibility = if removed_walls.0.contains(&wall) {
                 Visibility::Hidden
             } else {
                 Visibility::Visible

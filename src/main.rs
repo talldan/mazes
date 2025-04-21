@@ -9,12 +9,17 @@ mod utils;
 pub use crate::resources::*;
 pub use crate::systems::*;
 
-fn main() {
-    let rng_seed_changed = resource_changed::<RngSeed>.and(not(resource_added::<RngSeed>));
-    let maze_builder_changed =
-        resource_changed::<MazeBuilderType>.and(not(resource_added::<MazeBuilderType>));
-    let grid_map_changed = resource_changed::<GridMap>.and(not(resource_added::<GridMap>));
+pub fn resource_updated<T>(res: Option<Res<T>>) -> bool
+where
+    T: Resource,
+{
+    match res {
+        Some(res) => !res.is_added() && res.is_changed(),
+        None => false,
+    }
+}
 
+fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .insert_resource(GridMap::new(15, 15))
@@ -22,25 +27,29 @@ fn main() {
         .insert_resource(MazeBuilderType::AldousBroder)
         .insert_resource(OverlayState(false))
         .insert_resource(RemovedWalls(HashSet::new()))
-        .add_systems(Startup, (setup_camera, setup_hud, setup_grid_map))
-        .add_systems(Update, (update_button_state, hud_action))
         .add_systems(
-            Update,
-            update_removed_walls.run_if(
-                rng_seed_changed
-                    .or(maze_builder_changed)
-                    .or(grid_map_changed),
+            Startup,
+            (
+                setup_camera,
+                setup_hud,
+                update_removed_walls.before(setup_grid_map),
+                setup_grid_map,
             ),
         )
         .add_systems(
             Update,
-            (update_cell_content, update_wall_visibility)
-                .run_if(resource_changed::<RemovedWalls>.and(not(resource_added::<RemovedWalls>))),
-        )
-        .add_systems(
-            Update,
-            update_overlay_visibility
-                .run_if(resource_changed::<OverlayState>.and(not(resource_added::<OverlayState>))),
+            (
+                update_button_state,
+                handle_hud_action,
+                update_removed_walls.run_if(
+                    resource_updated::<RngSeed>
+                        .or(resource_updated::<MazeBuilderType>)
+                        .or(resource_updated::<GridMap>),
+                ),
+                (update_cell_content, update_wall_visibility)
+                    .run_if(resource_updated::<RemovedWalls>),
+                update_overlay_visibility.run_if(resource_updated::<OverlayState>),
+            ),
         )
         .run();
 }
