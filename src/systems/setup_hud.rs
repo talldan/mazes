@@ -143,7 +143,7 @@ fn make_dropdown(
                     DropdownMenu,
                     RadioGroup,
                     Node {
-                        top: Val::Px(BUTTON_HEIGHT),
+                        top: Val::Px(BUTTON_HEIGHT + 10.0),
                         width: Val::Px(BUTTON_WIDTH),
                         height: Val::Px(option_count * BUTTON_HEIGHT),
                         align_items: AlignItems::Center,
@@ -182,8 +182,10 @@ pub fn update_button_colors(
     for (interaction, button_variant, mut background_color) in &mut interaction_query {
         *background_color = match *interaction {
             Interaction::Pressed => match *button_variant {
-                ButtonVariant::Normal | ButtonVariant::DropdownOpener(_) => HOVERED_BUTTON.into(),
-                ButtonVariant::Toggle(state) | ButtonVariant::Radio(state) => {
+                ButtonVariant::Normal => HOVERED_BUTTON.into(),
+                ButtonVariant::Toggle(state)
+                | ButtonVariant::Radio(state)
+                | ButtonVariant::DropdownOpener(state) => {
                     if state {
                         // button is switching from active to inactive.
                         HOVERED_BUTTON.into()
@@ -194,8 +196,10 @@ pub fn update_button_colors(
                 }
             },
             Interaction::Hovered => match *button_variant {
-                ButtonVariant::Normal | ButtonVariant::DropdownOpener(_) => HOVERED_BUTTON.into(),
-                ButtonVariant::Toggle(state) | ButtonVariant::Radio(state) => {
+                ButtonVariant::Normal => HOVERED_BUTTON.into(),
+                ButtonVariant::Toggle(state)
+                | ButtonVariant::Radio(state)
+                | ButtonVariant::DropdownOpener(state) => {
                     if state {
                         // button is active.
                         HOVERED_PRESSED_BUTTON.into()
@@ -206,8 +210,10 @@ pub fn update_button_colors(
                 }
             },
             Interaction::None => match *button_variant {
-                ButtonVariant::Normal | ButtonVariant::DropdownOpener(_) => NORMAL_BUTTON.into(),
-                ButtonVariant::Toggle(state) | ButtonVariant::Radio(state) => {
+                ButtonVariant::Normal => NORMAL_BUTTON.into(),
+                ButtonVariant::Toggle(state)
+                | ButtonVariant::Radio(state)
+                | ButtonVariant::DropdownOpener(state) => {
                     if state {
                         // button is active.
                         PRESSED_BUTTON.into()
