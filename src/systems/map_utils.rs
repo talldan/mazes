@@ -14,7 +14,7 @@ pub fn get_cell_background_color(
         let intensity = (max - dist) / max;
         let dark = 1.0 * intensity;
         let bright = 0.5 + (0.5 * intensity);
-        Color::srgb(dark, bright, dark)
+        Color::srgb(dark, bright, bright)
     } else {
         Color::srgba(1.0, 1.0, 1.0, 0.0)
     }
