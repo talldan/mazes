@@ -169,7 +169,10 @@ fn make_dropdown(
         });
 }
 
-// This system handles changing all buttons color based on mouse interaction
+// This system handles changing all buttons color based on mouse interaction.
+// TODO - radio and toggle buttons should probably be updated as a result of their
+// state changing rather than only the mouse input. This would allow limiting of this
+// query to only Changed<Interaction>.
 pub fn update_button_colors(
     mut interaction_query: Query<
         (&Interaction, &ButtonVariant, &mut BackgroundColor),
@@ -235,7 +238,7 @@ pub fn update_toggle_button_state(
     }
 }
 
-// This system handles changing all buttons color based on mouse interaction
+// This system handles opening and closing dropdown menus.
 pub fn update_dropdown_menu_open_state(
     mut interaction_query: Query<
         (&Interaction, &mut ButtonVariant, &Parent),
@@ -267,7 +270,7 @@ pub fn update_dropdown_menu_open_state(
     }
 }
 
-// This system handles changing all buttons color based on mouse interaction
+// This system handles toggling radio buttons.
 pub fn update_radio_state(
     mut interaction_query: Query<(&Interaction, &mut ButtonVariant, &Parent), With<Button>>,
     radio_group_query: Query<&Children, With<RadioGroup>>,
