@@ -1,5 +1,8 @@
 use crate::components::Wall;
-use bevy::{prelude::*, utils::HashSet};
+use bevy::{
+    prelude::*,
+    utils::{HashMap, HashSet},
+};
 mod grid_map;
 
 pub use grid_map::*;
@@ -20,3 +23,15 @@ pub enum MazeBuilderType {
 
 #[derive(Resource)]
 pub struct RemovedWalls(pub HashSet<Wall>);
+
+#[derive(Resource)]
+pub struct DijkstraMap(pub HashMap<IVec2, i32>);
+
+#[derive(Resource, Default)]
+pub struct Solution {
+    pub start: IVec2,
+    pub end: IVec2,
+    pub path: HashMap<IVec2, i32>,
+    pub distances: HashMap<IVec2, i32>,
+    pub farthest_distance: i32,
+}

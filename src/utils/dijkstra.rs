@@ -71,10 +71,10 @@ pub fn dijkstra(
 pub fn get_path(
     from: IVec2,
     to: IVec2,
+    distances: &HashMap<IVec2, i32>,
     grid_map: &GridMap,
     removed_walls: &HashSet<Wall>,
 ) -> HashMap<IVec2, i32> {
-    let distances = dijkstra(from, grid_map, removed_walls);
     let mut current = to;
     let mut breadcrumbs: HashMap<IVec2, i32> = HashMap::new();
     breadcrumbs.insert(current, 0);
@@ -105,6 +105,7 @@ pub fn get_path(
         } else {
             // Couldn't find a path.
             // This shouldn't happen though, should've hit the earlier break.
+            // TODO: Handle errors.
             break;
         }
     }

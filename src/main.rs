@@ -1,3 +1,4 @@
+use bevy::utils::hashbrown::HashMap;
 use bevy::{prelude::*, utils::HashSet};
 
 mod components;
@@ -27,12 +28,13 @@ fn main() {
         .insert_resource(MazeBuilderType::AldousBroder)
         .insert_resource(OverlayState(false))
         .insert_resource(RemovedWalls(HashSet::new()))
+        .insert_resource(Solution { ..default() })
         .add_systems(
             Startup,
             (
                 setup_camera,
                 setup_hud,
-                update_removed_walls.before(setup_grid_map),
+                update_maze_resources.before(setup_grid_map),
                 setup_grid_map,
             ),
         )
@@ -41,7 +43,7 @@ fn main() {
             (
                 update_button_state,
                 handle_hud_action,
-                update_removed_walls.run_if(
+                update_maze_resources.run_if(
                     resource_updated::<RngSeed>
                         .or(resource_updated::<MazeBuilderType>)
                         .or(resource_updated::<GridMap>),

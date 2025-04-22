@@ -1,7 +1,6 @@
 use super::map_utils::*;
 use crate::components::*;
 use crate::resources::*;
-use crate::utils::*;
 use bevy::prelude::*;
 
 const POINT_SIZE: f32 = 0.12;
@@ -14,6 +13,7 @@ pub fn setup_grid_map(
     grid_map: Res<GridMap>,
     overlay_state: Res<OverlayState>,
     removed_walls: Res<RemovedWalls>,
+    solution: Res<Solution>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
     windows: Query<&mut Window>,
@@ -32,13 +32,6 @@ pub fn setup_grid_map(
     let point_shape = meshes.add(Circle::new(POINT_SIZE));
     let rectangle_shape = meshes.add(Rectangle::new(1.0, 1.0));
     let material = materials.add(COLOR);
-    let start = grid_map.get_north_east_cell_pos();
-    let distances = dijkstra(start, &grid_map, &removed_walls.0);
-    let (to, _) = get_most_distant(&distances);
-    let distances = dijkstra(to, &grid_map, &removed_walls.0);
-    let (from, farthest_distance) = get_most_distant(&distances);
-    let distances = dijkstra(from, &grid_map, &removed_walls.0);
-    let path = get_path(from, to, &grid_map, &removed_walls.0);
 
     let grid_entity = commands
         .spawn((
@@ -70,7 +63,7 @@ pub fn setup_grid_map(
 
     grid_map.iter_cells().for_each(|cell_position| {
         let translation = cell_position.as_vec2();
-        let distance = distances.get(&cell_position);
+        let distance = solution.distances.get(&cell_position);
 
         let cell_entity = commands
             .spawn((
@@ -93,7 +86,8 @@ pub fn setup_grid_map(
         } else {
             Visibility::Visible
         };
-        let cell_background_color = get_cell_background_color(distance, farthest_distance, false);
+        let cell_background_color =
+            get_cell_background_color(distance, solution.farthest_distance, false);
         let cell_background_material = materials.add(cell_background_color);
         let cell_background_entity = commands
             .spawn((
@@ -105,9 +99,9 @@ pub fn setup_grid_map(
                 cell_contents_visibility,
             ))
             .id();
-        let is_start = cell_position == from;
-        let is_end = cell_position == to;
-        let is_on_path = path.contains_key(&cell_position);
+        let is_start = cell_position == solution.start;
+        let is_end = cell_position == solution.end;
+        let is_on_path = solution.path.contains_key(&cell_position);
         let cell_text_color = get_cell_text_color(is_on_path);
         let cell_text = get_cell_text(is_start, is_end, distance, false);
         let cell_text_entity = commands
@@ -130,7 +124,8 @@ pub fn setup_grid_map(
         } else {
             Visibility::Hidden
         };
-        let overlay_background_color = get_cell_background_color(distance, farthest_distance, true);
+        let overlay_background_color =
+            get_cell_background_color(distance, solution.farthest_distance, true);
         let overlay_background_material = materials.add(overlay_background_color);
         let overlay_background_entity = commands
             .spawn((

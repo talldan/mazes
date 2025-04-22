@@ -1,12 +1,10 @@
 use super::map_utils::*;
 use crate::components::*;
 use crate::resources::*;
-use crate::utils::*;
 use bevy::prelude::*;
 
 pub fn update_cell_content(
-    removed_walls: Res<RemovedWalls>,
-    grid_map: Res<GridMap>,
+    solution: Res<Solution>,
     mut materials: ResMut<Assets<ColorMaterial>>,
     cell_query: Query<(&Cell, &Children)>,
     mut cell_content_text_query: Query<
@@ -22,19 +20,11 @@ pub fn update_cell_content(
         (With<CellOverlayText>, Without<CellContentText>),
     >,
 ) {
-    let start = grid_map.get_north_east_cell_pos();
-    let distances = dijkstra(start, &grid_map, &removed_walls.0);
-    let (to, _) = get_most_distant(&distances);
-    let distances = dijkstra(to, &grid_map, &removed_walls.0);
-    let (from, farthest_distance) = get_most_distant(&distances);
-    let distances = dijkstra(from, &grid_map, &removed_walls.0);
-    let path = get_path(from, to, &grid_map, &removed_walls.0);
-
     for (cell, children) in &cell_query {
-        let distance = distances.get(&cell.position);
-        let is_start = cell.position == from;
-        let is_end = cell.position == to;
-        let is_on_path = path.contains_key(&cell.position);
+        let distance = solution.distances.get(&cell.position);
+        let is_start = cell.position == solution.start;
+        let is_end = cell.position == solution.end;
+        let is_on_path = solution.path.contains_key(&cell.position);
 
         let (mut content_text, mut content_text_color) =
             cell_content_text_query.get_mut(children[1]).unwrap();
@@ -44,7 +34,8 @@ pub fn update_cell_content(
         let mut overlay_background_material =
             cell_overlay_background_query.get_mut(children[2]).unwrap();
         let old_material_id = overlay_background_material.id();
-        let overlay_background_color = get_cell_background_color(distance, farthest_distance, true);
+        let overlay_background_color =
+            get_cell_background_color(distance, solution.farthest_distance, true);
         overlay_background_material.0 = materials.add(overlay_background_color);
         materials.remove(old_material_id);
 
