@@ -21,6 +21,7 @@ pub fn handle_hud_action(
                 HudAction::ChangeMazeType(new_maze_type) => {
                     *maze_builder_type = *new_maze_type;
                 }
+                HudAction::None => (),
             }
         }
     }

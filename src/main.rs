@@ -40,7 +40,13 @@ fn main() {
         .add_systems(
             Update,
             (
-                update_button_state,
+                (
+                    // UI update systems.
+                    update_button_colors,
+                    update_toggle_button_state,
+                    update_dropdown_menu_open_state,
+                    update_radio_state,
+                ),
                 handle_hud_action,
                 update_maze_resources.run_if(
                     resource_updated::<RngSeed>

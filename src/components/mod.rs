@@ -6,13 +6,28 @@ pub enum HudAction {
     ToggleOverlay,
     RandomiseSeed,
     ChangeMazeType(MazeBuilderType),
+    None,
 }
 
 #[derive(Component, Eq, PartialEq, Copy, Clone)]
 pub enum ButtonVariant {
     Normal,
+    // bool = is_toggle_active
     Toggle(bool),
+    // bool = is_dropdown_open
+    DropdownOpener(bool),
+    // bool = is_option_active
+    Radio(bool),
 }
+
+#[derive(Component, Eq, PartialEq, Copy, Clone)]
+pub struct Dropdown;
+
+#[derive(Component, Eq, PartialEq, Copy, Clone)]
+pub struct DropdownMenu;
+
+#[derive(Component, Eq, PartialEq, Copy, Clone)]
+pub struct RadioGroup;
 
 #[derive(Component, Eq, PartialEq, Copy, Clone)]
 pub enum WallOrientation {
