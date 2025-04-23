@@ -8,7 +8,7 @@ It implements four of the maze algorithms from the ['Mazes for Programmers' book
 - [Aldous Broder](https://weblog.jamisbuck.org/2011/1/17/maze-generation-aldous-broder-algorithm)
 - [Wilson](https://weblog.jamisbuck.org/2011/1/20/maze-generation-wilson-s-algorithm)
 
-That book is originally written in Python, so this is a 'port' of sorts, but the code is different to what the book presents. I've avoided some patterns from the book, like maintaining a list of cells that store references to neighbour cells, as my understanding is that would require reference counting (`Rc`, or possibly even `Arc` given Bevy systems run in parallel, see https://doc.rust-lang.org/book/ch15-04-rc.html for more info).
+That book is originally written in Python, so this is a 'port' of sorts, but the code is different to what the book presents. I've avoided some patterns from the book, like maintaining a list of cells that store references to neighbour cells, as my understanding is that would require reference counting in Rust (`Rc`, or possibly even `Arc` given Bevy systems run in parallel, see https://doc.rust-lang.org/book/ch15-04-rc.html for more info).
 
 ## Try the demo
 
