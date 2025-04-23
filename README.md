@@ -29,6 +29,7 @@ There are three controls you can use to the change the maze:
 
 I'm not sure whether I'll devote more time to this, but here's some possible future improvements:
 
+- Bug: The start and end points aren't always in the same place for a given maze. For some mazes, there might be multiple possibilities of which cell is the start/end. This is ok, but the process of choosing them should be deterministic and consistently reproducible. I expect it's not because those start/end locations are calculated by iterating through an unordered collection type (HashMap), so sometimes a particular cell might be encountered first, sometimes a different cell.
 - Reduce the build size.
 - Change the button colors to something with more contrast.
 - Add more algorithms from the book.
