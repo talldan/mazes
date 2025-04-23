@@ -268,9 +268,8 @@ pub fn update_dropdown_menu_open_state(
                     Visibility::Hidden
                 };
 
-                // Toggle the state.
+                // Toggle the button state.
                 *button_variant = ButtonVariant::DropdownOpener(!is_open);
-                return;
             }
         }
     }
