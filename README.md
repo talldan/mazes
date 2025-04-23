@@ -30,6 +30,7 @@ There are three controls you can use to the change the maze:
 I'm not sure whether I'll devote more time to this, but here's some possible future improvements:
 
 - Reduce the build size.
+- Change the button colors to something with more contrast.
 - Add more algorithms from the book.
 - Add some unit tests.
 - Make the 'Maze type' dropdown close on a click outside.
